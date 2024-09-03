@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -32,7 +33,12 @@ func bridgeRequest(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	defer response.Body.Close()
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			fmt.Println(err)
+		}
+	}(response.Body)
 
 	err = json.NewDecoder(response.Body).Decode(&data)
 	if err != nil {
@@ -42,7 +48,26 @@ func bridgeRequest(c *gin.Context) {
 
 	statusCode := response.StatusCode
 
-	c.JSON(statusCode, data)
+	dataInterface := convertToObject(data)
 
-	storeToES(c.Request, response, data)
+	fmt.Println(dataInterface)
+
+	c.JSON(statusCode, dataInterface)
+
+	storeToES(c.Request, response, dataInterface)
+}
+
+func convertToObject(data interface{}) map[string]interface{} {
+	switch v := data.(type) {
+	case string:
+		return map[string]interface{}{
+			"message": v,
+		}
+	case map[string]interface{}:
+		return v
+	default:
+		return map[string]interface{}{
+			"message": v,
+		}
+	}
 }

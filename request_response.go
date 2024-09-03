@@ -3,10 +3,10 @@ package main
 import "time"
 
 type Request struct {
-	Method string `json:"method"`
-	URL    string `json:"url"`
-	Header string `json:"header"`
-	Body   string `json:"body"`
+	Method string      `json:"method"`
+	URL    string      `json:"url"`
+	Header interface{} `json:"header"`
+	Body   interface{} `json:"body"`
 }
 
 type Response struct {

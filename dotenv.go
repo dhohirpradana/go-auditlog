@@ -1,18 +1,23 @@
 package main
 
 import (
-	"log"
+	"fmt"
 	"os"
-
-	"github.com/joho/godotenv"
 )
 
-func goDotEnvVariable(key string) string {
-	err := godotenv.Load(".env")
-
-	if err != nil {
-		log.Fatalf("Error loading .env file")
+func ValidateEnvVars() error {
+	requiredVars := []string{
+		"ES_URL",
+		"ES_USER",
+		"ES_PASS",
+		"ES_INDEX",
 	}
 
-	return os.Getenv(key)
+	for _, key := range requiredVars {
+		value, exists := os.LookupEnv(key)
+		if !exists || value == "" {
+			return fmt.Errorf("environment variable %s is not set or is empty", key)
+		}
+	}
+	return nil
 }
